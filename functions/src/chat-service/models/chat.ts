@@ -13,7 +13,6 @@ export class Chat {
      * @property {ChatMessage[]} messages - Chat messages
      */
     constructor(
-        public readonly id: string,
         public readonly name: string | undefined,
         public readonly model: string,
         public readonly messages: ChatMessage[]
