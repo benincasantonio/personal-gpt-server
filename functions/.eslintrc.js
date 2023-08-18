@@ -26,5 +26,16 @@ module.exports = {
         'import/no-unresolved': 0,
         'indent': ['error', 4],
         'object-curly-spacing': ['error', 'always'],
+        'require-jsdoc': [
+            'error',
+            {
+                require: {
+                    FunctionDeclaration: false,
+                    MethodDefinition: false,
+                    ClassDeclaration: true,
+                    ArrowFunctionExpression: false,
+                },
+            },
+        ],
     },
 };
