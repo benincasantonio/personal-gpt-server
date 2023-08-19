@@ -15,6 +15,8 @@ export class Chat {
     constructor(
         public readonly name: string | undefined,
         public readonly model: string,
-        public readonly messages: ChatMessage[]
+        public readonly messages: ChatMessage[],
+        public readonly createdAt: Date = new Date(),
+        public readonly id: string | undefined = undefined
     ) {}
 }

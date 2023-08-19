@@ -4,6 +4,7 @@ import { type Firestore } from 'firebase-admin/firestore';
 import * as admin from 'firebase-admin';
 import { Configuration, OpenAIApi } from 'openai';
 import { Chat } from '../models/chat';
+import { chatNameListConverter } from '../firestore-converters';
 
 const firestore: Firestore = admin.firestore();
 
@@ -55,4 +56,41 @@ export async function createChat(
     await firestore.collection('chats').doc().set(chatRef);
 
     res.send(chat);
+}
+
+export async function getChats(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    const { page, pageSize } = req.query;
+
+    if (!Number(page) || !Number(pageSize)) {
+        res.status(400).send({
+            message: 'Page and pageSize are required',
+        });
+        return;
+    }
+
+    const chatsRef = firestore
+        .collection('chats')
+        .withConverter(chatNameListConverter)
+        .select('name', 'createdAt')
+        .orderBy('createdAt', 'desc')
+        .limit(Number(pageSize))
+        .offset((Number(page) - 1) * Number(pageSize));
+
+    const chats = await chatsRef.get();
+
+    const chatsList: Chat[] = [];
+
+    chats.forEach((chat) => {
+        chatsList.push({
+            id: chat.id,
+            createdAt: chat.data().createdAt,
+            name: chat.data().name,
+        } as Chat);
+    });
+
+    res.send(chatsList);
 }
