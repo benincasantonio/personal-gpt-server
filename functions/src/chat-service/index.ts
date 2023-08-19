@@ -1,6 +1,10 @@
 import * as cors from 'cors';
 import * as express from 'express';
-import { createChat, getChats } from './controllers/chat-controller';
+import {
+    addMessage,
+    createChat,
+    getChats,
+} from './controllers/chat-controller';
 
 const app = express();
 app.use(express.json());
@@ -14,5 +18,7 @@ app.get('/', (req, res) => {
 app.post('/chat', createChat);
 
 app.get('/chat', getChats);
+
+app.post('/chat/:chatId/message', addMessage);
 
 export default app;

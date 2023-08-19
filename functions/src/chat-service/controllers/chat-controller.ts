@@ -94,3 +94,59 @@ export async function getChats(
 
     res.send(chatsList);
 }
+
+export async function addMessage(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    const { message } = req.body;
+
+    if (!message) {
+        res.status(400).send({
+            message: 'Message is required',
+        });
+    }
+
+    const chat = await firestore
+        .collection('chats')
+        .doc(req.params.chatId)
+        .get();
+
+    if (!chat) {
+        res.status(404).send({
+            message: 'Chat not found',
+        });
+    }
+
+    const messages: ChatMessage[] = chat.data()?.messages ?? [];
+
+    messages.push({
+        role: 'user',
+        message: message,
+        sendedAt: new Date(),
+    });
+
+    const newCompletion = await openAI.createChatCompletion({
+        model: chat.data()?.model,
+        messages: messages.map((message) => ({
+            role: message.role,
+            content: message.message,
+        })),
+    });
+
+    newCompletion.data.choices.forEach((choice) => {
+        messages.push({
+            role: choice.message?.role ?? 'assistant',
+            message: choice.message?.content ?? '',
+            sendedAt: new Date(),
+        });
+    });
+
+    await firestore
+        .collection('chats')
+        .doc(req.params.chatId)
+        .update({ messages: messages });
+
+    res.send(messages);
+}
