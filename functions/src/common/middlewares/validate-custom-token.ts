@@ -1,7 +1,7 @@
 import * as admin from 'firebase-admin';
 import { type NextFunction, type Request, type Response } from 'express';
 
-export function validateCustomToken(
+export function validateIdToken(
     req: Request,
     res: Response,
     next: NextFunction
