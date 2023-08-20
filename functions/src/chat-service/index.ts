@@ -5,6 +5,8 @@ import {
     createChat,
     getChats,
 } from './controllers/chat-controller';
+// eslint-disable-next-line max-len
+import { validateCustomToken } from '../common/middlewares/validate-custom-token';
 
 const app = express();
 app.use(express.json());
@@ -15,9 +17,9 @@ app.get('/', (req, res) => {
     res.send('Hello World!');
 });
 
-app.post('/chat', createChat);
+app.post('/chat', validateCustomToken, createChat);
 
-app.get('/chat', getChats);
+app.get('/chat', validateCustomToken, getChats);
 
 app.post('/chat/:chatId/message', addMessage);
 

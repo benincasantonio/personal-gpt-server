@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import { ChatMessage } from '../models/chat-message';
+import { ChatMessage } from '../../common/models/chat-message';
 import { type Firestore } from 'firebase-admin/firestore';
 import * as admin from 'firebase-admin';
 import { Configuration, OpenAIApi } from 'openai';
-import { Chat } from '../models/chat';
+import { Chat } from '../../common/models/chat';
 import { chatNameListConverter } from '../firestore-converters';
 
 const firestore: Firestore = admin.firestore();
@@ -35,7 +35,7 @@ export async function createChat(
         },
     ];
 
-    const chat: Chat = new Chat('', 'gpt-3.5-turbo', messages);
+    const chat: Chat = new Chat('', 'gpt-3.5-turbo', messages, [req.user]);
 
     const newCompletion = await openAI.createChatCompletion({
         model: chat.model,
@@ -74,8 +74,8 @@ export async function getChats(
 
     const chatsRef = firestore
         .collection('chats')
+        .select('name', 'createdAt', 'participants')
         .withConverter(chatNameListConverter)
-        .select('name', 'createdAt')
         .orderBy('createdAt', 'desc')
         .limit(Number(pageSize))
         .offset((Number(page) - 1) * Number(pageSize));
