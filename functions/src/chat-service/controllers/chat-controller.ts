@@ -53,9 +53,12 @@ export async function createChat(
     });
 
     const chatRef = JSON.parse(JSON.stringify(chat));
-    await firestore.collection('chats').doc().set(chatRef);
+    const result = await firestore.collection('chats').add(chatRef);
 
-    res.send(chat);
+    res.send({
+        id: result.id,
+        ...chatRef,
+    });
 }
 
 export async function getChats(
@@ -149,4 +152,43 @@ export async function addMessage(
         .update({ messages: messages });
 
     res.send(messages);
+}
+
+export function addChatInstruction(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): void {
+    const { message } = req.body;
+    const { chatId } = req.params;
+
+    if (!message) {
+        res.status(400).send({
+            message: 'Message is required',
+        });
+    }
+    const chatMessage: ChatMessage = {
+        message: message,
+        role: 'system',
+        sendedAt: new Date(),
+    };
+
+    let chatRef;
+
+    if (!chatId) {
+        const chat = new Chat('', 'gpt-3.5-turbo', [], [req.user]);
+        chatRef = firestore.collection('chats').doc();
+        chatRef.set(chat);
+    } else {
+        chatRef = firestore.collection('chats').doc(chatId);
+    }
+
+    chatRef.update({
+        messages: admin.firestore.FieldValue.arrayUnion(chatMessage),
+    });
+
+    res.send({
+        id: chatRef.id,
+        ...chatRef.get(),
+    });
 }
